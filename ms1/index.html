@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Clinical AI Module - Frontend</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    * { font-family: 'Inter', sans-serif; }
+
+    .glass-card {
+      background: rgba(255,255,255,0.9);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .input-field {
+      width: 100%;
+      padding: 0.6rem 0.85rem;
+      border-radius: 0.6rem;
+      border: 1.5px solid #e2e8f0;
+      background: #f8fafc;
+      font-size: 0.875rem;
+      color: #1e293b;
+      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+      outline: none;
+    }
+    .input-field:focus {
+      border-color: #3b82f6;
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
+    }
+    .input-field::placeholder { color: #94a3b8; }
+    select.input-field { cursor: pointer; }
+
+    .label {
+      display: block;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.35rem;
+    }
+
+    .submit-btn {
+      width: 100%;
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: white;
+      font-weight: 600;
+      font-size: 0.875rem;
+      padding: 0.75rem 1rem;
+      border-radius: 0.75rem;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      transition: all 0.2s;
+      box-shadow: 0 4px 14px rgba(37,99,235,0.3);
+    }
+    .submit-btn:hover:not(:disabled) {
+      background: linear-gradient(135deg, #1d4ed8, #1e40af);
+      box-shadow: 0 6px 20px rgba(37,99,235,0.42);
+      transform: translateY(-1px);
+    }
+    .submit-btn:disabled { opacity: 0.65; cursor: not-allowed; transform: none; }
+
+    .section-divider {
+      border: none;
+      border-top: 1.5px solid #f1f5f9;
+      margin: 0.5rem 0;
+    }
+
+    .output-block {
+      border-radius: 0.875rem;
+      border: 1.5px solid #e2e8f0;
+      background: #fff;
+      overflow: hidden;
+    }
+    .output-block-header {
+      padding: 0.6rem 1rem;
+      background: #f8fafc;
+      border-bottom: 1.5px solid #e2e8f0;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #1e3a5f;
+      text-transform: none;
+      letter-spacing: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .output-block-body { padding: 1rem; }
+
+    pre.out {
+      font-size: 0.74rem;
+      white-space: pre-wrap;
+      line-height: 1.65;
+      font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+      max-height: 15rem;
+      overflow: auto;
+      margin: 0;
+    }
+
+    pre::-webkit-scrollbar { width: 4px; height: 4px; }
+    pre::-webkit-scrollbar-track { background: transparent; }
+    pre::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+    .form-section-title {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      color: #94a3b8;
+      margin-bottom: 0.75rem;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col" style="background: linear-gradient(135deg, #eff6ff 0%, #f8fafc 55%, #eef2ff 100%); color: #1e293b;">
+
+  <!-- Navbar -->
+  <nav class="bg-white/80 backdrop-blur-md px-4 py-3 sticky top-0 z-50 border-b border-slate-200/70" style="box-shadow: 0 2px 16px rgba(37,99,235,0.08);">
+    <div class="container mx-auto flex items-center justify-between max-w-7xl">
+      <div class="flex items-center gap-3">
+        <div class="text-white p-2.5 rounded-xl shadow" style="background: linear-gradient(135deg, #2563eb, #1d4ed8);">
+          <i class="fa-solid fa-user-doctor text-base"></i>
+        </div>
+        <div>
+          <h1 class="text-sm font-bold text-slate-800 leading-tight">Clinical AI Module</h1>
+          <p class="text-xs text-slate-400 font-medium">Test Environment</p>
+        </div>
+      </div>
+      <span class="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse inline-block"></span>
+        Online
+      </span>
+    </div>
+  </nav>
+
+  <main class="container mx-auto p-4 md:p-6 max-w-7xl flex-grow">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+      <!-- LEFT: Input form -->
+      <section class="lg:col-span-4 glass-card p-6 rounded-2xl h-fit" style="border: 1.5px solid rgba(255,255,255,0.9); box-shadow: 0 4px 28px rgba(37,99,235,0.07), 0 1px 4px rgba(0,0,0,0.04);">
+        <div class="flex items-center gap-2 mb-5 pb-4 border-b border-slate-100">
+          <div class="bg-blue-50 text-blue-500 rounded-lg p-1.5">
+            <i class="fa-solid fa-notes-medical text-sm"></i>
+          </div>
+          <h2 class="text-sm font-bold text-slate-700">Input clinico</h2>
+        </div>
+
+        <form id="clinicalForm" class="space-y-4">
+
+          <!-- Paziente -->
+          <div>
+            <p class="form-section-title">Paziente</p>
+            <div class="space-y-3">
+              <div>
+                <label for="diagnosi" class="label">Diagnosi principale</label>
+                <input id="diagnosi" name="diagnosi" required class="input-field" placeholder="Es: Diabete Mellito Tipo 2" />
+              </div>
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label for="fascia_eta" class="label">Fascia età</label>
+                  <select id="fascia_eta" name="fascia_eta" required class="input-field">
+                    <option value="" disabled selected>-</option>
+                    <option value="0-10">0-10</option>
+                    <option value="11-18">11-18</option>
+                    <option value="19-35">19-35</option>
+                    <option value="36-50">36-50</option>
+                    <option value="51-65">51-65</option>
+                    <option value="66-75">66-75</option>
+                    <option value="76+">76+</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="sesso" class="label">Sesso</label>
+                  <select id="sesso" name="sesso" required class="input-field">
+                    <option value="" disabled selected>-</option>
+                    <option value="Maschio">Maschio</option>
+                    <option value="Femmina">Femmina</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label for="comorbidita" class="label">Comorbidità</label>
+                <textarea id="comorbidita" name="comorbidita" rows="3" class="input-field resize-none" placeholder="Una per riga o separate da virgola&#10;Es: Ipertensione, Dislipidemia"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <hr class="section-divider" />
+
+          <!-- Professionista -->
+          <div>
+            <p class="form-section-title">Professionista</p>
+            <div class="space-y-3">
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label for="reparto" class="label">Reparto</label>
+                  <input id="reparto" name="reparto" required class="input-field" placeholder="Es: Medicina interna" />
+                </div>
+                <div>
+                  <label for="unita_operativa" class="label">Unità operativa</label>
+                  <input id="unita_operativa" name="unita_operativa" required class="input-field" placeholder="Es: Diabetologia" />
+                </div>
+              </div>
+              <div>
+                <label for="contesto" class="label">Contesto clinico</label>
+                <textarea id="contesto" name="contesto" rows="2" class="input-field resize-none" placeholder="Es: Follow-up periodico"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <button id="submitButton" class="submit-btn" type="submit">
+            <span id="btnText">Genera Piano Monitoraggio</span>
+            <i id="btnIcon" class="fa-solid fa-microchip text-sm"></i>
+            <svg id="loadingIndicator" class="animate-spin h-4 w-4 hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+            </svg>
+          </button>
+        </form>
+      </section>
+
+      <!-- RIGHT: Output -->
+      <section class="lg:col-span-8 space-y-4">
+
+        <!-- Placeholder -->
+        <div id="placeholderState" class="min-h-[380px] rounded-2xl border-2 border-dashed border-slate-200 bg-white/40 flex flex-col items-center justify-center gap-3 text-slate-400">
+          <div class="bg-slate-100 rounded-2xl p-4">
+            <i class="fa-regular fa-file-lines text-3xl text-slate-300"></i>
+          </div>
+          <p class="text-sm font-semibold text-slate-400">Compila il form per avviare la richiesta</p>
+          <p class="text-xs text-slate-300">I risultati appariranno qui</p>
+        </div>
+
+        <!-- Output -->
+        <div id="outputState" class="hidden space-y-4">
+
+          <!-- Success bar -->
+          <div class="flex flex-wrap gap-3 items-center bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-2.5">
+            <span class="flex items-center gap-1.5 text-sm font-semibold text-emerald-700">
+              <i class="fa-solid fa-circle-check"></i>
+              Elaborazione completata
+            </span>
+            <span class="ml-auto font-mono bg-white border border-emerald-200 rounded-lg px-2.5 py-1 text-xs text-slate-500">
+              Session: <span id="sessionIdDisplay" class="font-bold text-slate-700">-</span>
+            </span>
+          </div>
+
+
+          <!-- Parametri estratti - grid cards -->
+          <div class="output-block">
+            <div class="output-block-header">
+              <span><i class="fa-solid fa-list-check mr-1.5 opacity-50"></i>Parametri clinici</span>
+            </div>
+            <div class="output-block-body">
+              <div id="outputParametri" class="grid grid-cols-3 gap-3"></div>
+            </div>
+          </div>
+
+          <!-- Parametri dettaglio -->
+          <div class="output-block">
+            <div class="output-block-header">
+              <span><i class="fa-solid fa-magnifying-glass-chart mr-1.5 opacity-50"></i>Parametri clinici estratti con motivazione e fonte</span>
+            </div>
+            <div class="output-block-body p-0">
+              <div id="outputParametriDettaglio" class="overflow-auto max-h-80"></div>
+            </div>
+          </div>
+
+          <!-- Proposta visita/prestazioni ambulatoriali -->
+          <div class="output-block">
+            <div class="output-block-header">
+              <span><i class="fa-solid fa-stethoscope mr-1.5 opacity-50"></i>Prestazioni ambulatoriali</span>
+            </div>
+            <div class="output-block-body">
+              <div id="outputPropostaVisita" class="grid grid-cols-3 gap-3"></div>
+            </div>
+          </div>
+
+          <!-- FHIR query -->
+          <div class="output-block" style="background: #eff6ff; border-color: #bfdbfe;">
+            <div class="output-block-header" style="background: #dbeafe; border-color: #bfdbfe;">
+              <span><i class="fa-solid fa-code mr-1.5" style="color:#2563eb;"></i>Query FHIR</span>
+              <button type="button" onclick="copyFhirQuery()"
+                style="background:#bfdbfe; color:#1d4ed8; border:1px solid #93c5fd; font-size:0.72rem; padding:0.2rem 0.7rem; border-radius:0.5rem; font-weight:600; cursor:pointer;"
+                onmouseover="this.style.background='#93c5fd'" onmouseout="this.style.background='#bfdbfe'">
+                <i class="fa-regular fa-copy mr-1"></i>Copia
+              </button>
+            </div>
+            <div class="output-block-body">
+              <pre id="outputFhir" class="out" style="color: #1e40af;"></pre>
+            </div>
+          </div>
+
+          <!-- Judge -->
+          <div class="output-block">
+            <div class="output-block-header">
+              <span><i class="fa-solid fa-scale-balanced mr-1.5 opacity-50"></i>Valutazione judge</span>
+            </div>
+            <div class="output-block-body">
+              <pre id="outputVerificaFhir" class="out text-amber-700"></pre>
+            </div>
+          </div>
+
+          <!-- Sezione feedback (MS_2) -->
+          <div id="feedbackSection" class="hidden">
+            <div class="output-block relative" style="background: #eff6ff; border-color: #bfdbfe;">
+              <div class="output-block-header" style="background: #dbeafe; border-color: #bfdbfe;">
+                <span><i class="fa-regular fa-comment-dots mr-1.5" style="color:#2563eb;"></i>Fase 2: Feedback Clinico</span>
+              </div>
+              <div class="output-block-body">
+
+                <p class="text-sm text-slate-500 mb-5">
+                  Il feedback verrà associato alla sessione
+                  <span class="font-mono bg-blue-100 px-1.5 py-0.5 rounded text-blue-700 text-xs" id="feedbackSessionIdDisplay">N/D</span>
+                </p>
+
+                <form id="feedbackForm" class="space-y-4">
+                  <div>
+                    <label for="rilevanzaPunteggio" class="label">Rilevanza Parametri Proposti</label>
+                    <select id="rilevanzaPunteggio" name="rilevanzaPunteggio" required class="input-field">
+                      <option value="" disabled selected>-- Seleziona voto --</option>
+                      <option value="1">1 - Non Rilevante</option>
+                      <option value="2">2 - Poco Rilevante</option>
+                      <option value="3">3 - Non Molto Rilevante</option>
+                      <option value="4">4 - Mediamente Rilevante</option>
+                      <option value="5">5 - Buono</option>
+                      <option value="6">6 - Molto Rilevante</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label for="feedbackStringBox" class="label">Parametri Mancanti (Opzionale)</label>
+                    <textarea id="feedbackStringBox" name="feedbackStringBox" rows="3" class="input-field resize-y" placeholder="Es. Peptide C, Microalbumina Urinaria"></textarea>
+                  </div>
+
+                  <div class="flex justify-center pt-1">
+                    <button type="submit" class="submit-btn" style="max-width: 220px;" id="feedbackSubmitButton">
+                      <span id="feedbackBtnText">Invia Feedback</span>
+                      <i id="feedbackBtnIcon" class="fa-solid fa-paper-plane text-sm"></i>
+                      <svg id="feedbackLoadingIndicator" class="animate-spin h-4 w-4 hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                      </svg>
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const API_GENERATE_URL = "/api/GeneraPianoMonitoraggio";
+    const API_FEEDBACK_URL = "/api/Elaborafeedback";
+
+    let CURRENT_OUTPUT = null;
+
+    const clinicalForm = document.getElementById('clinicalForm');
+    const submitButton = document.getElementById('submitButton');
+    const btnText = document.getElementById('btnText');
+    const btnIcon = document.getElementById('btnIcon');
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    const placeholderState = document.getElementById('placeholderState');
+    const outputState = document.getElementById('outputState');
+    const sessionIdDisplay = document.getElementById('sessionIdDisplay');
+    const outputParametri = document.getElementById('outputParametri');
+    const outputParametriDettaglio = document.getElementById('outputParametriDettaglio');
+    const outputPropostaVisita = document.getElementById('outputPropostaVisita');
+    const outputFhir = document.getElementById('outputFhir');
+    const feedbackSection = document.getElementById('feedbackSection');
+    const feedbackForm = document.getElementById('feedbackForm');
+    const feedbackSessionIdDisplay = document.getElementById('feedbackSessionIdDisplay');
+    const feedbackSubmitButton = document.getElementById('feedbackSubmitButton');
+    const feedbackBtnText = document.getElementById('feedbackBtnText');
+    const feedbackBtnIcon = document.getElementById('feedbackBtnIcon');
+    const feedbackLoadingIndicator = document.getElementById('feedbackLoadingIndicator');
+
+    function renderParametriTable(raw) {
+      let items = [];
+      if (Array.isArray(raw)) {
+        items = raw;
+      } else if (typeof raw === 'string') {
+        try { items = JSON.parse(raw); } catch { /* fallback */ }
+      }
+      if (!Array.isArray(items) || items.length === 0) {
+        outputParametriDettaglio.innerHTML = '<p style="padding:1rem;font-size:0.8rem;color:#94a3b8;">Nessun dato disponibile.</p>';
+        return;
+      }
+      const cols = [
+        { key: 'nome',        label: 'Nome Parametro', w: '25%' },
+        { key: 'motivazione', label: 'Motivazione',    w: '55%' },
+        { key: 'fonte',       label: 'Fonte',          w: '20%' },
+      ];
+      const thStyle = `padding:0.55rem 0.85rem;background:#f1f5f9;border-bottom:1.5px solid #e2e8f0;text-align:left;font-size:0.67rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.06em;white-space:nowrap;`;
+      const thead = `<thead><tr>${cols.map(c => `<th style="${thStyle}width:${c.w};">${c.label}</th>`).join('')}</tr></thead>`;
+      const tbody = `<tbody>${items.map((row, i) => {
+        const bg = i % 2 === 0 ? '#fff' : '#f8fafc';
+        return `<tr style="background:${bg};">${cols.map(c => {
+          const isName = c.key === 'nome';
+          const tdStyle = `padding:0.6rem 0.85rem;border-bottom:1px solid #f1f5f9;font-size:0.78rem;color:${isName ? '#1e293b' : '#475569'};vertical-align:top;line-height:1.55;${isName ? 'font-weight:600;' : ''}`;
+          return `<td style="${tdStyle}">${row[c.key] || '-'}</td>`;
+        }).join('')}</tr>`;
+      }).join('')}</tbody>`;
+      outputParametriDettaglio.innerHTML = `<table style="width:100%;border-collapse:collapse;table-layout:fixed;">${thead}${tbody}</table>`;
+    }
+    const outputVerificaFhir = document.getElementById('outputVerificaFhir');
+
+    function toggleLoading(isLoading) {
+      submitButton.disabled = isLoading;
+      btnText.textContent = isLoading ? 'Elaborazione...' : 'Genera Piano Monitoraggio';
+      btnIcon.classList.toggle('hidden', isLoading);
+      loadingIndicator.classList.toggle('hidden', !isLoading);
+    }
+
+    function parseComorbidita(input) {
+      const cleaned = (input || '').trim();
+      if (!cleaned) return "";
+      if (cleaned.includes('\n') || cleaned.includes(',')) {
+        return cleaned.split(/[\n,]+/).map(v => v.trim()).filter(Boolean);
+      }
+      return cleaned;
+    }
+
+    function safePretty(value) {
+      if (value === null || value === undefined) return '-';
+      if (typeof value === 'string') {
+        try { return JSON.stringify(JSON.parse(value), null, 2); } catch { return value; }
+      }
+      return JSON.stringify(value, null, 2);
+    }
+
+    // ── Clinical icons for lab/diagnostic parameters ──────────────────────
+    const paramIcons = [
+      { icon: 'fa-droplet',           color: '#2563eb', bg: '#eff6ff', border: '#bfdbfe' },
+      { icon: 'fa-heart-pulse',       color: '#2563eb', bg: '#eff6ff', border: '#bfdbfe' },
+      { icon: 'fa-flask-vial',        color: '#2563eb', bg: '#eff6ff', border: '#bfdbfe' },
+      { icon: 'fa-dna',               color: '#2563eb', bg: '#eff6ff', border: '#bfdbfe' },
+      { icon: 'fa-microscope',        color: '#2563eb', bg: '#eff6ff', border: '#bfdbfe' },
+      { icon: 'fa-weight-scale',      color: '#2563eb', bg: '#eff6ff', border: '#bfdbfe' },
+      { icon: 'fa-temperature-half',  color: '#2563eb', bg: '#eff6ff', border: '#bfdbfe' },
+      { icon: 'fa-lungs',             color: '#2563eb', bg: '#eff6ff', border: '#bfdbfe' },
+      { icon: 'fa-vial-circle-check', color: '#2563eb', bg: '#eff6ff', border: '#bfdbfe' },
+      { icon: 'fa-shield-virus',      color: '#2563eb', bg: '#eff6ff', border: '#bfdbfe' },
+      { icon: 'fa-chart-line',        color: '#2563eb', bg: '#eff6ff', border: '#bfdbfe' },
+      { icon: 'fa-circle-radiation',  color: '#2563eb', bg: '#eff6ff', border: '#bfdbfe' },
+    ];
+
+    // ── Icons for visits/procedures ────────────────────────────────────────
+    const visitIcons = [
+      { icon: 'fa-stethoscope',   color: '#2563eb', bg: '#eff6ff', border: '#bfdbfe' },
+      { icon: 'fa-user-doctor',   color: '#2563eb', bg: '#eff6ff', border: '#bfdbfe' },
+      { icon: 'fa-syringe',       color: '#2563eb', bg: '#eff6ff', border: '#bfdbfe' },
+      { icon: 'fa-x-ray',         color: '#2563eb', bg: '#eff6ff', border: '#bfdbfe' },
+      { icon: 'fa-capsules',      color: '#2563eb', bg: '#eff6ff', border: '#bfdbfe' },
+      { icon: 'fa-hospital',      color: '#2563eb', bg: '#eff6ff', border: '#bfdbfe' },
+      { icon: 'fa-eye',           color: '#2563eb', bg: '#eff6ff', border: '#bfdbfe' },
+      { icon: 'fa-bone',          color: '#2563eb', bg: '#eff6ff', border: '#bfdbfe' },
+      { icon: 'fa-bandage',       color: '#2563eb', bg: '#eff6ff', border: '#bfdbfe' },
+      { icon: 'fa-brain',         color: '#2563eb', bg: '#eff6ff', border: '#bfdbfe' },
+      { icon: 'fa-scissors',      color: '#2563eb', bg: '#eff6ff', border: '#bfdbfe' },
+      { icon: 'fa-heart',         color: '#2563eb', bg: '#eff6ff', border: '#bfdbfe' },
+    ];
+
+    function renderParamCard(label, code, ico) {
+      return `
+        <div style="background:${ico.bg};border:1.5px solid ${ico.border};border-radius:0.75rem;padding:0.9rem 1rem;display:flex;flex-direction:column;gap:0.4rem;transition:box-shadow 0.15s,border-color 0.15s;cursor:default;"
+          onmouseover="this.style.boxShadow='0 4px 14px rgba(0,0,0,0.09)';this.style.borderColor='${ico.color}66';"
+          onmouseout="this.style.boxShadow='none';this.style.borderColor='${ico.border}';">
+          <span style="font-size:0.78rem;font-weight:700;color:#1e293b;line-height:1.35;">${label}</span>
+          ${code ? `<span style="font-size:0.67rem;font-weight:600;color:#94a3b8;letter-spacing:0.04em;font-family:'Courier New',monospace;">${code}</span>` : ''}
+        </div>`;
+    }
+
+    function renderParametriCards(params) {
+      const container = document.getElementById('outputParametri');
+      if (!params.length) {
+        container.innerHTML = '<p style="font-size:0.8rem;color:#94a3b8;grid-column:span 3;">Nessun parametro estratto.</p>';
+        return;
+      }
+      container.innerHTML = params.map((p, i) => {
+        const dashIdx = p.lastIndexOf(' - ');
+        const name = dashIdx > -1 ? p.slice(0, dashIdx).trim() : p.trim();
+        const code = dashIdx > -1 ? p.slice(dashIdx + 3).trim() : '';
+        return renderParamCard(name, code, paramIcons[i % paramIcons.length]);
+      }).join('');
+    }
+
+    function renderPropostaCards(raw) {
+      const container = document.getElementById('outputPropostaVisita');
+      if (!raw || !raw.trim()) {
+        container.innerHTML = '<p style="font-size:0.8rem;color:#94a3b8;grid-column:span 3;">Nessuna proposta ICD9-CM generata.</p>';
+        return;
+      }
+      const items = raw.split(/[\n;]+/).map(s => s.trim()).filter(Boolean);
+      if (!items.length) {
+        container.innerHTML = '<p style="font-size:0.8rem;color:#94a3b8;grid-column:span 3;">Nessuna proposta ICD9-CM generata.</p>';
+        return;
+      }
+      container.innerHTML = items.map((p, i) => {
+        const dashIdx = p.indexOf(' - ');
+        let name = p, code = '';
+        if (dashIdx > -1) {
+          const left = p.slice(0, dashIdx).trim();
+          const right = p.slice(dashIdx + 3).trim();
+          const looksLikeCode = /^[\d\w\.]{2,10}$/.test(left);
+          name = looksLikeCode ? right : left;
+          code = looksLikeCode ? left : right;
+        }
+        return renderParamCard(name, code, visitIcons[i % visitIcons.length]);
+      }).join('');
+    }
+
+    function handleGenerationSuccess(data) {
+      CURRENT_OUTPUT = data;
+      sessionIdDisplay.textContent = data.transaction_id || '-';
+      feedbackSessionIdDisplay.textContent = data.transaction_id || '-';
+      const params = Array.isArray(data.risultato_prompt_1_parametri) ? data.risultato_prompt_1_parametri : [];
+      renderParametriCards(params);
+      renderParametriTable(data.parametri_con_dettaglio || []);
+      renderPropostaCards(data.proposta_visita_prestazioni_icd9cm || '');
+      outputFhir.textContent = safePretty(data.risultato_prompt_2_fhir || '');
+      outputVerificaFhir.textContent = safePretty(data.risultato_prompt_3_verifica_fhir || '');
+      placeholderState.classList.add('hidden');
+      outputState.classList.remove('hidden');
+      feedbackSection.classList.remove('hidden');
+      feedbackForm.reset();
+    }
+
+    clinicalForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      toggleLoading(true);
+      feedbackSection.classList.add('hidden');
+      const formData = new FormData(clinicalForm);
+      const payload = {
+        paziente: {
+          diagnosi: (formData.get('diagnosi') || '').trim(),
+          fascia_eta: (formData.get('fascia_eta') || '').trim(),
+          sesso: (formData.get('sesso') || '').trim(),
+          comorbidita: parseComorbidita(formData.get('comorbidita'))
+        },
+        professionista: {
+          reparto: (formData.get('reparto') || '').trim(),
+          unita_operativa: (formData.get('unita_operativa') || '').trim(),
+          contesto: (formData.get('contesto') || '').trim()
+        }
+      };
+      try {
+        const response = await fetch(API_GENERATE_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`HTTP ${response.status}: ${errorText.slice(0, 200)}`);
+        }
+        const data = await response.json();
+        handleGenerationSuccess(data);
+      } catch (error) {
+        console.error(error);
+        showCustomMessage(`Errore durante la chiamata API: ${error.message}`, 'Errore API', 'error');
+        feedbackSection.classList.add('hidden');
+      } finally {
+        toggleLoading(false);
+      }
+    });
+
+    // =========================
+    // CUSTOM MESSAGE BOX
+    // =========================
+    function showCustomMessage(text, title = "Notifica", type = "info") {
+      // Crea o riusa il message box
+      let box = document.getElementById('_customMsgBox');
+      if (!box) {
+        box = document.createElement('div');
+        box.id = '_customMsgBox';
+        box.style.cssText = 'position:fixed;inset:0;background:rgba(30,41,59,0.45);display:flex;align-items:center;justify-content:center;z-index:9999;padding:1rem;';
+        box.innerHTML = `
+          <div id="_customMsgInner" style="background:#fff;border-radius:1rem;padding:1.5rem 1.75rem;max-width:24rem;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.18);border-top:4px solid #2563eb;">
+            <h3 id="_customMsgTitle" style="font-size:1rem;font-weight:700;color:#1e293b;margin:0 0 0.5rem;"></h3>
+            <p  id="_customMsgText"  style="font-size:0.875rem;color:#475569;margin:0 0 1.25rem;line-height:1.6;"></p>
+            <div style="display:flex;justify-content:flex-end;">
+              <button id="_customMsgOk" style="background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;font-weight:600;font-size:0.85rem;padding:0.55rem 1.25rem;border-radius:0.6rem;border:none;cursor:pointer;box-shadow:0 4px 12px rgba(37,99,235,0.3);">OK</button>
+            </div>
+          </div>`;
+        document.body.appendChild(box);
+        document.getElementById('_customMsgOk').addEventListener('click', () => { box.style.display = 'none'; });
+      }
+
+      const colorMap = { error: '#ef4444', success: '#10b981', feedback: '#2563eb', info: '#2563eb' };
+      document.getElementById('_customMsgInner').style.borderTopColor = colorMap[type] || '#2563eb';
+      document.getElementById('_customMsgOk').style.background =
+        type === 'error'   ? 'linear-gradient(135deg,#ef4444,#dc2626)' :
+        type === 'success' ? 'linear-gradient(135deg,#10b981,#059669)' :
+                             'linear-gradient(135deg,#2563eb,#1d4ed8)';
+      document.getElementById('_customMsgTitle').textContent = title;
+      document.getElementById('_customMsgText').textContent  = text;
+      box.style.display = 'flex';
+    }
+
+    function toggleFeedbackLoading(isLoading) {
+      feedbackSubmitButton.disabled = isLoading;
+      feedbackBtnText.textContent = isLoading ? 'Invio in corso...' : 'Invia Feedback';
+      feedbackBtnIcon.classList.toggle('hidden', isLoading);
+      feedbackLoadingIndicator.classList.toggle('hidden', !isLoading);
+    }
+
+    feedbackForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      // Validazione: chiave sessione
+      if (!CURRENT_OUTPUT?.chiave_input) {
+        showCustomMessage('Chiave sessione mancante. Genera nuovamente il piano clinico.', 'Attenzione', 'info');
+        return;
+      }
+
+      // Validazione: voto obbligatorio
+      const punteggio = parseFloat(document.getElementById('rilevanzaPunteggio').value);
+      if (!punteggio) {
+        showCustomMessage('Seleziona un voto per la rilevanza dei parametri.', 'Attenzione', 'info');
+        return;
+      }
+
+      // Lista parametri prodotti dal modello (risultato_prompt_1_parametri)
+      const listaParametri = Array.isArray(CURRENT_OUTPUT.risultato_prompt_1_parametri)
+        ? CURRENT_OUTPUT.risultato_prompt_1_parametri
+        : [];
+
+      // output_parametri: { "Parametro X": score, ... } — il voto viene applicato a ogni parametro
+      const outputParametriMap = {};
+      listaParametri.forEach(p => {
+        outputParametriMap[String(p).trim()] = punteggio;
+      });
+
+      // parametri_aggiunti: ["Param1", "Param2"] — il backend usa _normalize_list() che vuole una lista
+      const feedbackText = (document.getElementById('feedbackStringBox').value || '');
+      const parametriAggiunti = feedbackText
+        .split(/[\n,;]+/)
+        .map(v => v.trim())
+        .filter(Boolean);
+
+      // Payload conforme alla struttura attesa dal MS2
+      const payload = {
+        chiave_input:       CURRENT_OUTPUT.chiave_input,
+        output_parametri:   outputParametriMap,
+        parametri_aggiunti: parametriAggiunti,          // array di stringhe
+        GET_FHIR:           CURRENT_OUTPUT.risultato_prompt_2_fhir || '',
+        feedback_value:     punteggio,
+        lista_parametri:    listaParametri
+      };
+
+      console.log('Payload feedback MS2:', JSON.stringify(payload, null, 2));
+
+      try {
+        toggleFeedbackLoading(true);
+        const response = await fetch(API_FEEDBACK_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (!response.ok) {
+          const errorText = await response.text().catch(() => '');
+          console.error('Feedback API error');
+          console.error('Feedback API error — status:', response.status);
+          console.error('Feedback API error — body:', errorText);
+          throw new Error(`HTTP ${response.status}${errorText ? '\n' + errorText.slice(0, 400) : ''}`);
+        }
+
+        showCustomMessage('Feedback inviato correttamente. Grazie per la valutazione!', 'Successo', 'success');
+        feedbackForm.reset();
+
+        // Aggiorna icona bottone per conferma visiva
+        feedbackBtnIcon.className = 'fa-solid fa-check';
+        feedbackBtnText.textContent = 'Inviato!';
+        setTimeout(() => {
+          feedbackBtnIcon.className = 'fa-solid fa-paper-plane';
+          feedbackBtnText.textContent = 'Invia Feedback';
+        }, 2500);
+
+      } catch (error) {
+        console.error('Errore feedback:', error);
+        showCustomMessage(`Impossibile inviare il feedback: ${error.message}`, 'Errore', 'error');
+      } finally {
+        toggleFeedbackLoading(false);
+      }
+    });
+
+    async function copyFhirQuery() {
+      const text = outputFhir.textContent || '';
+      if (!text.trim()) {
+        showCustomMessage('Nessuna query FHIR disponibile da copiare.', 'Attenzione', 'info');
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(text);
+        showCustomMessage('Query FHIR copiata negli appunti.', 'Copiato', 'info');
+      } catch {
+        showCustomMessage('Copia automatica non riuscita. Seleziona il testo manualmente.', 'Attenzione', 'info');
+      }
+    }
+  </script>
+</body>
+</html>
